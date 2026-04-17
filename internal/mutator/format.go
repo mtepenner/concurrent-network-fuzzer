@@ -1,7 +1,6 @@
 package mutator
 
 import (
-	"bytes"
 	"strings"
 )
 

@@ -2,12 +2,13 @@ package scanner
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"sync"
 	"time"
 
-	"github.com/yourusername/network-fuzzer/internal/mutator"
-	"github.com/yourusername/network-fuzzer/internal/reporter"
+	"github.com/mtepenner/concurrent-network-fuzzer/internal/mutator"
+	"github.com/mtepenner/concurrent-network-fuzzer/internal/reporter"
 )
 
 type Fuzzer struct {
@@ -53,7 +54,9 @@ func (f *Fuzzer) worker(ports <-chan int, wg *sync.WaitGroup) {
 
 	for p := range ports {
 		result := f.fuzzPort(p)
-		f.Reporter.Report(result)
+		if err := f.Reporter.Report(result); err != nil {
+			log.Printf("reporter error on port %d: %v", p, err)
+		}
 	}
 }
 
@@ -67,6 +70,7 @@ func (f *Fuzzer) fuzzPort(port int) reporter.FuzzResult {
 		result.Open = false
 		return result
 	}
+	defer conn.Close()
 	result.Open = true
 
 	// 2. Read Banner
@@ -83,14 +87,13 @@ func (f *Fuzzer) fuzzPort(port int) reporter.FuzzResult {
 	_, err = conn.Write(payload)
 	if err != nil {
 		result.ErrorMsg = fmt.Sprintf("Failed to write payload: %v", err)
-		conn.Close()
 		return result
 	}
 
 	// 4. Monitor Health
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 	_, err = conn.Read(buffer)
-	
+
 	if err != nil {
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 			// Expected behavior, the server ignored the payload
@@ -100,6 +103,5 @@ func (f *Fuzzer) fuzzPort(port int) reporter.FuzzResult {
 		}
 	}
 
-	conn.Close()
 	return result
 }

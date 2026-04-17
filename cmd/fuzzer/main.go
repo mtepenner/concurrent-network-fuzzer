@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mtepenner/concerrent-network-fuzzer/internal/mutator"
-	"github.com/mtepenner/concerrent-network-fuzzer/internal/reporter"
-	"github.com/mtepenner/concerrent-network-fuzzer/internal/scanner"
+	"github.com/mtepenner/concurrent-network-fuzzer/internal/mutator"
+	"github.com/mtepenner/concurrent-network-fuzzer/internal/reporter"
+	"github.com/mtepenner/concurrent-network-fuzzer/internal/scanner"
 )
 
 func main() {
